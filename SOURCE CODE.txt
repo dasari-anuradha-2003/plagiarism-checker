@@ -1,0 +1,157 @@
+SOURCE CODE
+from kivy.lang import Builder
+from kivymd.app import MDApp
+from kivy.core.window import Window
+from kivy.uix.screenmanager import ScreenManager, Screen
+from difflib import SequenceMatcher 
+class Login(Screen):
+ pass
+class Signup(Screen):
+ pass
+class Dashboard(Screen):
+ pass
+class Result(Screen):
+ pass
+string="""
+<Login>:
+ MDLabel:
+ text: "Plagiarism Detection"
+ font_size: 50
+ pos_hint: {"center_x": 0.5, "center_y": 0.95}
+ halign: 'center'
+ size_hint_y: None
+ padding_y: 15
+ MDLabel:
+ text: "LOGIN"
+ font_size: 35
+ pos_hint: {"center_x": 0.5, "center_y": 0.70}
+ halign: 'center'
+ size_hint_y: None
+ padding_y: 15
+ MDRoundFlatButton:
+ text: "Login"
+ font_size: 25
+ pos_hint: {"center_x": 0.5, "center_y": 0.15}
+ size_hint_x: 0.7
+ on_press: app.login(email.text,password.text)
+ <Signup>:
+ MDLabel:
+ text: "SIGN UP"
+ font_size: 35
+ pos_hint: {"center_x": 0.5, "center_y": 0.95}
+ halign: 'center'
+ size_hint_y: None
+ padding_y: 15
+ 
+ MDTextField:
+ id: email
+ hint_text: "Email"
+ size_hint_x: 0.9
+ font_size: 25
+ pos_hint: {"center_x": 0.5, "center_y": 0.8}
+ required: True
+ MDTextField:
+ id: password
+ hint_text: "Password"
+ password: True
+ size_hint_x: 0.9
+ required: True
+ font_size: 25
+ pos_hint: {"center_x": 0.5, "center_y": 0.65}
+ MDTextField:
+ id: password1
+ hint_text: "Re-Enter password"
+ password: True
+ size_hint_x: 0.9
+ required: True
+ font_size: 25
+ pos_hint: {"center_x": 0.5, "center_y": 0.5}
+ MDLabel:
+ id: err
+ text: ""
+ size_hint_x: 0.9
+ required: True
+ font_size: 25
+ color: 1,0,0,1
+ pos_hint: {"center_x": 0.83, "center_y": 0.4}
+ MDRoundFlatButton:
+ text: "Sign up"
+ font_size: 25
+ pos_hint: {"center_x": 0.5, "center_y": 0.3}
+ size_hint_x: 0.7
+ on_press: app.createaccount(email.text,password.text,password1.text)
+ MDRoundFlatButton:
+ text: "Go Back"
+ font_size: 25
+ pos_hint: {"center_x": 0.5, "center_y": 0.08}
+ size_hint_x: 0.8
+ on_press: app.goback()
+<Result>:
+ MDLabel:
+ text: "Result"
+ font_size: 40
+ pos_hint: {"center_x": 0.5, "center_y": 0.95}
+ halign: 'center'
+ size_hint_y: None
+ padding_y: 15
+ MDLabel:
+ id: result
+ text: "Plagiarism is :" 
+ font_size: 40
+ pos_hint: {"center_x": 0.5, "center_y": 0.7}
+ halign: 'center'
+ size_hint_y: None
+class MainApp(MDApp):
+ def build(self):
+ self.theme_cls.theme_style = "Light"
+ self.theme_cls.primary_palette = "BlueGray"
+ 
+ sm.add_widget(Login(name='Login'))
+ sm.add_widget(Signup(name='Signup'))
+ sm.add_widget(Dashboard(name='Dashboard'))
+ sm.add_widget(Result(name='Result'))
+ sm.current = 'Login'
+ return sm
+ def signup(self):
+ sm.current='Signup'
+ def login(self,email,password):
+ s = f"Email: {email}\nPassword: {password}\n"
+ 
+ if email=="admin@gmail.com" and password=="admin":
+ print("successful\n"+s)
+ sm.current='Dashboard'
+ self.file_manager_open()
+ else:
+ print("failed\n"+s)
+ sm.get_screen('Login').ids.err.text="Wrong email / password"
+ 
+ def file_manager_open(self):
+ Window.bind(on_dropfile=self._on_file_drop)
+ def _on_file_drop(self, window, file_path):
+ global c
+ global l
+ print(file_path)
+ if c<2:
+ c+=1
+ l.append(str(file_path))
+ if c==2:
+ x=l[0][2:-1].split('\\')
+ x=x[::2]
+ file_path1="/".join(x)
+ with open(file_path1) as f1:
+ data1 = f1.read()
+ y=l[1][2:-1].split('\\')
+ y=y[::2]
+ file_path2="/".join(y)
+ with open(file_path2) as f2:
+ data2 = f2.read()
+ similarity_ratio = SequenceMatcher(None,data1,data2).ratio() 
+ print(similarity_ratio*100 ) 
+ c=0
+ l=[]
+ sm.current='Result' 
+ sm.get_screen('Result').ids.result.text="Plagiarism is : "+ str(similarity_ratio*100) +" %"
+ print("success")
+ sm.current='Result'
+ return
+MainApp().run()
